@@ -25,16 +25,14 @@ class BLEInterface:
         self.communication_address = communication_address
         self.loop = None
         self.connection = None
+        self.connected = False
 
     def found_device(self):
         devices = asyncio.run(BleakScanner.discover())
         device_list = [d.address for d in devices]
-        print(device_list)
         if self.communication_address in device_list:
             return True
         else:
-            self.loop = None
-            self.connection = None
             return False
 
     def setup_connection(self):
@@ -42,11 +40,10 @@ class BLEInterface:
         # Establish the Bluetooth connection and keep the object reference for further use
         try:
             self.connection = self.loop.run_until_complete(self.establish_connection(self.communication_address))
+            self.connected = True
             return True
         except:
             print('Failed to connect. Hit reset on the device.')
-            self.loop = None
-            self.connection = None
             return False
 
     def on_incoming_bth_message(self, sender: int, data: bytearray) -> None:
@@ -66,10 +63,10 @@ class BLEInterface:
         """
         print('Establishing connection with the device {mac}'.format(mac=communication_address))
         # Establish connection with the device
-        client = BleakClient(communication_address, loop=self.loop)
+        client = BleakClient(communication_address, loop=self.loop, disconnected_callback=self.on_bth_disconnect)
         await client.connect()
         # Set on disconnect callback
-        client.set_disconnected_callback(self.on_bth_disconnect)
+        #client.set_disconnected_callback(self.on_bth_disconnect)
         print('Connection successfully established!')
         return client
 
@@ -88,7 +85,7 @@ class BLEInterface:
         # Convert short little endian to float
         signal = float(value[0] + value[1])
         # Prevent overflow
-        time.sleep(0.00001)
+        time.sleep(0.0001)
         # Retrieve time when signal arrives
         now = datetime.datetime.now()
         data_now = {'Time_sec': now, 'Signal': signal}
