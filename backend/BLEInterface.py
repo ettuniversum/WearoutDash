@@ -50,7 +50,6 @@ class BLEInterface:
         value = array.array('h', data)
         signal = float(value[0] + value[1])
         # Prevent overflow
-        time.sleep(1)
         now = datetime.datetime.now()
         data_now = {'Time_sec': now, 'Signal': signal}
         df_signal = DataFrame([data_now], columns=list(data_now.keys()))

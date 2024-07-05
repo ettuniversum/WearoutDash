@@ -1,3 +1,5 @@
+import pandas as pd
+
 from .BLEInterface import BLEInterface
 from threading import Thread
 from pandas import DataFrame, concat
@@ -42,12 +44,16 @@ def ble_connection():
     # If we found the device, then we haven't connected to it
     if bool_found:
         bool_connect = ble_interface.setup_connection()
-        if bool_connect:
-            df_signal = ble_interface.read_gatt()
-            return df_signal
-    elif ble_interface.connected:
-        df_signal = ble_interface.read_gatt()
-        return df_signal
+        return bool_connect
+        # if bool_connect:
+        #     df_signal = ble_interface.read_gatt()
+        #     return df_signal
+    # elif ble_interface.connected:
+    #     df_signal = ble_interface.read_gatt()
+    #     # df_append = pd.DataFrame([])
+    #     # for i in range(1, 100):
+    #     #     df_append = df_append.append(df_signal)
+    #     return df_signal
 
 def retrieve_data():
     df_signal = DataFrame([])

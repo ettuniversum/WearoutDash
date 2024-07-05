@@ -26,7 +26,7 @@ app.layout = html.Div([
     html.Div(children="Waiting to connect...", id="retrieve_data_from_connect"),
     html.Div(children="Waiting to retrieve data...", id="data_output", hidden=True),
     dcc.Graph(id='graph', figure=dict(figure)),
-    dcc.Interval(id="interval", interval=10000, n_intervals=0),
+    dcc.Interval(id="interval", interval=100, n_intervals=0),
     #dcc.Store(id='offset', data=0),
     dcc.Store(id='store', data=dict(x=x, y=[], resolution=resolution)),
 ])
@@ -48,20 +48,16 @@ app.layout = html.Div([
 # )
 
 
-# @callback(
-#     Output("store", "data"),
-#     Input("button_connect", "n_clicks"), prevent_initial_call=True)
-# def connection_callback(n):
-#     df_data = ble_connection()
-#     print('First time getting data...')
-#     print(df_data.to_dict())
-#     x = df_data['Time_sec']
-#     y = df_data['Signal']
-#     data_dict = dict(x=x, y=y, resolution=resolution)
-#     return data_dict
+@callback(Output("interval", "n_intervals"), Input("button_connect", "n_clicks"), prevent_initial_call=True)
+def connection_callback(n):
+    bool_connect = ble_connection()
+    if not bool_connect:
+        raise PreventUpdate
+    # TODO: Do I need the return?
+    return 1
 
 
-@app.callback(Output('store', 'data'), Input("interval", "n_intervals"))
+@callback(Output('store', 'data'), Input("interval", "n_intervals"), prevent_initial_call=True)
 def gen_signal_dataframe(interval):
     '''
     Update the data graph
@@ -69,10 +65,11 @@ def gen_signal_dataframe(interval):
     :return: dictionary
     '''
     try:
-        df_data = ble_connection()
+        df_data = retrieve_data()
+        if df_data.empty:
+            raise PreventUpdate
         print('First time getting data...')
         x = str(df_data['Time_sec'][0])
-        #x = np.array([datetime.datetime.now(), datetime.datetime.now()])
         y = int(df_data['Signal'][0])
         data_dict = dict(x=[x], y=[y], resolution=resolution)
         print(data_dict)
@@ -81,7 +78,7 @@ def gen_signal_dataframe(interval):
         raise PreventUpdate
 
 
-@app.callback(Output('graph', 'figure'), Input('store', 'data'))
+@callback(Output('graph', 'figure'), Input('store', 'data'))
 def on_data_set_graph(data):
     print('>>> Updating graph...')
     print(data)
