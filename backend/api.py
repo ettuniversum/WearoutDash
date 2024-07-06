@@ -59,5 +59,6 @@ def retrieve_data():
     df_signal = DataFrame([])
     if ble_interface.connection:
         df_signal = ble_interface.read_gatt()
-        print(df_signal)
+        df_signal = concat([df_signal, df_signal])
+    df_signal = df_signal.reset_index(drop=True)
     return df_signal

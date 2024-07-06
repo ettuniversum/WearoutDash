@@ -12,6 +12,8 @@ from bleak import BleakClient, BleakScanner
 import datetime
 from pandas import DataFrame
 import time
+import warnings
+warnings.filterwarnings('ignore')
 
 class BLEInterface:
 

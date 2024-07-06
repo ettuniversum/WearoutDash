@@ -2,7 +2,7 @@ import time
 
 from backend.api import ble_connection, retrieve_data
 import dash
-from dash import html, callback, dcc
+from dash import html, callback, dcc, no_update
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import numpy as np
@@ -67,11 +67,11 @@ def gen_signal_dataframe(interval):
     try:
         df_data = retrieve_data()
         if df_data.empty:
-            raise PreventUpdate
+            return no_update
         print('First time getting data...')
-        x = str(df_data['Time_sec'][0])
-        y = int(df_data['Signal'][0])
-        data_dict = dict(x=[x], y=[y], resolution=resolution)
+        x = df_data['Time_sec'].to_list()
+        y = df_data['Signal'].to_list()
+        data_dict = dict(x=x, y=y, resolution=resolution)
         print(data_dict)
         return data_dict
     except:
