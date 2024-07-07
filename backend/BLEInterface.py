@@ -86,7 +86,7 @@ class BLEInterface:
         # Convert short little endian to float
         signal = float(value[0] + value[1])
         # Prevent overflow
-        time.sleep(0.0001)
+        #time.sleep(0.0001)
         # Retrieve time when signal arrives
         now = datetime.datetime.now()
         data_now = {'Time_sec': now, 'Signal': signal}

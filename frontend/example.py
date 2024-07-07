@@ -26,7 +26,7 @@ app.layout = html.Div([
     html.Div(children="Waiting to connect...", id="retrieve_data_from_connect"),
     html.Div(children="Waiting to retrieve data...", id="data_output", hidden=True),
     dcc.Graph(id='graph', figure=dict(figure)),
-    dcc.Interval(id="interval", interval=500, n_intervals=0),
+    dcc.Interval(id="interval", interval=130, n_intervals=0),
     #dcc.Store(id='offset', data=0),
     dcc.Store(id='store', data=dict(x=x, y=[], resolution=resolution)),
 ])
@@ -68,15 +68,18 @@ def gen_signal_dataframe(interval, fig):
         df_data = retrieve_data()
         if df_data.empty:
             return no_update
-        print('First time getting data...')
         x = df_data['Time_sec'].to_list()
         y = df_data['Signal'].to_list()
         #data_dict = dict(x=x, y=y, resolution=resolution)
-        fig['data'][0]['x'].extend(x)
-        fig['data'][0]['y'].extend(y)
+        if len(fig['data'][0]['x']) <= 200:
+            fig['data'][0]['x'].extend(x)
+            fig['data'][0]['y'].extend(y)
+        elif len(fig['data'][0]['x']) > 200:
+            fig['data'][0]['x'].pop(0)
+            fig['data'][0]['y'].pop(0)
         return {'data': fig['data']}
     except:
-        raise no_update
+        return no_update
 
 
 # @callback(Output('graph', 'figure'), Input('store', 'data'))
