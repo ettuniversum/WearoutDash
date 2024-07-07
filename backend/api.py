@@ -45,20 +45,13 @@ def ble_connection():
     if bool_found:
         bool_connect = ble_interface.setup_connection()
         return bool_connect
-        # if bool_connect:
-        #     df_signal = ble_interface.read_gatt()
-        #     return df_signal
-    # elif ble_interface.connected:
-    #     df_signal = ble_interface.read_gatt()
-    #     # df_append = pd.DataFrame([])
-    #     # for i in range(1, 100):
-    #     #     df_append = df_append.append(df_signal)
-    #     return df_signal
+
 
 def retrieve_data():
     df_signal = DataFrame([])
     if ble_interface.connection:
-        df_signal = ble_interface.read_gatt()
-        df_signal = concat([df_signal, df_signal])
+        for multi_signal in range(1):
+            df_signal = ble_interface.read_gatt()
+            df_signal = concat([df_signal, df_signal])
     df_signal = df_signal.reset_index(drop=True)
     return df_signal
