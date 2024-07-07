@@ -52,6 +52,5 @@ def retrieve_data():
     if ble_interface.connection:
         for multi_signal in range(1):
             df_signal = ble_interface.read_gatt()
-            df_signal = concat([df_signal, df_signal])
     df_signal = df_signal.reset_index(drop=True)
     return df_signal

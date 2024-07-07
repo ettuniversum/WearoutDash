@@ -26,7 +26,7 @@ app.layout = html.Div([
     html.Div(children="Waiting to connect...", id="retrieve_data_from_connect"),
     html.Div(children="Waiting to retrieve data...", id="data_output", hidden=True),
     dcc.Graph(id='graph', figure=dict(figure)),
-    dcc.Interval(id="interval", interval=100, n_intervals=0),
+    dcc.Interval(id="interval", interval=500, n_intervals=0),
     #dcc.Store(id='offset', data=0),
     dcc.Store(id='store', data=dict(x=x, y=[], resolution=resolution)),
 ])
@@ -57,8 +57,8 @@ def connection_callback(n):
     return 1
 
 
-@callback(Output('store', 'data'), Input("interval", "n_intervals"), prevent_initial_call=True)
-def gen_signal_dataframe(interval):
+@callback(Output('graph', 'figure'), Input("interval", "n_intervals"), [State('graph', 'figure')], prevent_initial_call=True)
+def gen_signal_dataframe(interval, fig):
     '''
     Update the data graph
     :param interval:  Update the graph based on an interval
@@ -71,18 +71,19 @@ def gen_signal_dataframe(interval):
         print('First time getting data...')
         x = df_data['Time_sec'].to_list()
         y = df_data['Signal'].to_list()
-        data_dict = dict(x=x, y=y, resolution=resolution)
-        print(data_dict)
-        return data_dict
+        #data_dict = dict(x=x, y=y, resolution=resolution)
+        fig['data'][0]['x'].extend(x)
+        fig['data'][0]['y'].extend(y)
+        return {'data': fig['data']}
     except:
-        raise PreventUpdate
+        raise no_update
 
 
-@callback(Output('graph', 'figure'), Input('store', 'data'))
-def on_data_set_graph(data):
-    print('>>> Updating graph...')
-    print(data)
-    return {'data': [data]}
+# @callback(Output('graph', 'figure'), Input('store', 'data'))
+# def on_data_set_graph(data):
+#     print('>>> Updating graph...')
+#     print(data)
+#     return {'data': [data]}
 
 
 
