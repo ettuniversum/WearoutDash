@@ -2,7 +2,7 @@ import time
 
 from backend.api import ble_connection, retrieve_data
 import dash
-from dash import html, callback, dcc, no_update
+from dash import html, callback, dcc, no_update, clientside_callback
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import numpy as np
@@ -17,7 +17,7 @@ y = np.array([3000, 3000+1])
 
 app = dash.Dash(__name__, update_title=None)  # remove "Updating..." from title
 
-figure = dict(data=[{'x': [], 'y': []}], layout=dict(xaxis=dict(range=[-1, 10000]), yaxis=dict(range=[2000, 4000])))
+figure = dict(data=[{'Time_sec': [], 'Signal': []}], layout=dict(xaxis=dict(range=[-1, 10000]), yaxis=dict(range=[2000, 4000])))
 
 app.layout = html.Div([
     # dcc: Dash Core Components
@@ -28,24 +28,8 @@ app.layout = html.Div([
     dcc.Graph(id='graph', figure=dict(figure)),
     dcc.Interval(id="interval", interval=130, n_intervals=0),
     #dcc.Store(id='offset', data=0),
-    dcc.Store(id='store', data=dict(x=x, y=[], resolution=resolution)),
+    dcc.Store(id='store', data=dict(Time_sec=[], Signal=[], resolution=resolution)),
 ])
-
-#
-# Local Client Callback - Super Fast
-# Resource: https://stackoverflow.com/questions/63589249/plotly-dash-display-real-time-data-in-smooth-animation
-# app.clientside_callback(
-#     """
-#     function (n_intervals, data, offset) {
-#         offset = offset % data.x.length;
-#         const end = Math.min((offset + 10), data.x.length);
-#         return [[{x: [data.x.slice(offset, end)], y: [data.y.slice(offset, end)]}, [0], 500], end]
-#     }
-#     """,
-#     [Output('graph', 'extendData'), Output('offset', 'data')],
-#     [Input('interval', 'n_intervals')],
-#     [State('store', 'data'), State('offset', 'data')]
-# )
 
 
 @callback(Output("interval", "n_intervals"), Input("button_connect", "n_clicks"), prevent_initial_call=True)
@@ -57,39 +41,47 @@ def connection_callback(n):
     return 1
 
 
-@callback(Output('graph', 'figure'), Input("interval", "n_intervals"), [State('graph', 'figure')], prevent_initial_call=True)
-def gen_signal_dataframe(interval, fig):
-    '''
-    Update the data graph
-    :param interval:  Update the graph based on an interval
-    :return: dictionary
-    '''
-    try:
-        df_data = retrieve_data()
-        if df_data.empty:
-            return no_update
-        x = df_data['Time_sec'].to_list()
-        y = df_data['Signal'].to_list()
-        #data_dict = dict(x=x, y=y, resolution=resolution)
-        if len(fig['data'][0]['x']) <= 200:
-            fig['data'][0]['x'].extend(x)
-            fig['data'][0]['y'].extend(y)
-        elif len(fig['data'][0]['x']) > 200:
-            fig['data'][0]['x'].pop(0)
-            fig['data'][0]['y'].pop(0)
-        return {'data': fig['data']}
-    except:
-        return no_update
+@callback(Output('store', 'data'), Input('interval', 'n_intervals'), State('store', 'data'), prevent_initial_call=True)
+def update_store(n_clicks, data_store):
+    # Retrieve new data
+    new_df = retrieve_data()
+
+    if new_df.empty:
+        raise PreventUpdate
+
+    # Extract new x and y values
+    new_x = new_df['Time_sec'].tolist()
+    new_y = new_df['Signal'].tolist()
+
+    # Extend existing data with new data
+    extended_data = {
+        'Time_sec': data_store['Time_sec'] + new_x,
+        'Signal': data_store['Signal'] + new_y,
+        'resolution': data_store['resolution']
+    }
+
+    return extended_data
 
 
-# @callback(Output('graph', 'figure'), Input('store', 'data'))
-# def on_data_set_graph(data):
-#     print('>>> Updating graph...')
-#     print(data)
-#     return {'data': [data]}
-
-
-
+app.clientside_callback(
+    """
+    function(data) {
+        return {
+            'data': [{
+                'x': data.Time_sec,
+                'y': data.Signal,
+                'type': 'scatter'
+            }],
+            'layout': {
+                'title': 'Updated Figure'
+            }
+        };
+    }
+    """,
+    Output('graph', 'figure'),
+    Input('store', 'data'),
+    prevent_initial_call=True
+)
 
 
 if __name__ == '__main__':
