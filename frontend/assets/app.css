@@ -124,14 +124,15 @@
 /* NOTE
 html is set to 62.5% so that all the REM measurements throughout Skeleton
 are based on 10px sizing. So basically 1.5rem = 15px :) */
-html {
-  font-size: 62.5%; }
+/* === FULL PAGE ===*/
+html,
 body {
-  font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
-  line-height: 1.6;
-  font-weight: 400;
-  font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: rgb(240, 255, 255); }
+    height: 100vh;
+    background-image: linear-gradient(109.6deg, rgb(0, 0, 0) 11.2%, rgb(11, 132, 145) 91.1%);
+    overflow-x: hidden;
+    font-size: 18px;
+}
+
 
 
 /* Typography
