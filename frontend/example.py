@@ -26,7 +26,7 @@ font_style = {
 }
 
 margin_style = {
-    'b': 10,
+    'b': 20,
     'l': 50,
     'r': 8,
     't': 50,
